@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e Spell Grimoire</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #5e2e0b;
+            --secondary-color: #8B4513;
+            --accent-color: #d4a76a;
+            --dark-text: #2c1502;
+            --light-text: #f8f1e5;
+            --bg-color: #f5efe6;
+            --card-bg: #fff9ee;
+            --border-radius: 8px;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.6s ease;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--dark-text);
+            background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        #search-input {
+            width: 100%;
+            padding: 10px 15px 10px 35px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--accent-color);
+            font-size: 0.9rem;
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: var(--card-bg);
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+        }
+        
+        .filter-group select {
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--accent-color);
+            background-color: var(--card-bg);
+            font-size: 0.8rem;
+        }
+        
+        #spells-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 1200px;
+            perspective: 1000px;
+        }
+        
+        .spell-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--accent-color);
+            position: relative;
+            height: 420px;
+            transform-style: preserve-3d;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .spell-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            padding: 12px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--border-radius);
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--light-text);
+            justify-content: space-between;
+        }
+        
+        .card-back {
+            background-color: var(--card-bg);
+            color: var(--dark-text);
+            transform: rotateY(180deg);
+            overflow: hidden;
+        }
+        
+        .spell-name {
+            margin: 0;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .card-front .spell-name {
+            font-size: 1.25rem;
+            margin-bottom: 5px;
+        }
+        
+        .card-back .spell-name {
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+        
+        .spell-level-school {
+            font-style: italic;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .card-front .spell-level-school {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        
+        .card-back .spell-level-school {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .spell-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 8px 0;
+        }
+        
+        .spell-detail {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--light-text);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        
+        .card-back .detail-label {
+            color: var(--primary-color);
+        }
+        
+        .spell-description-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .spell-description {
+            line-height: 1.4;
+            font-size: 0.78rem;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        
+        .spell-description p {
+            margin: 0 0 8px 0;
+        }
+        
+        .higher-level {
+            margin-top: 8px;
+            padding: 6px;
+            background-color: rgba(212, 167, 106, 0.2);
+            border-left: 3px solid var(--accent-color);
+            border-radius: 0 4px 4px 0;
+            font-size: 0.75rem;
+        }
+        
+        .higher-level-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .spell-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: var(--accent-color);
+            color: var(--dark-text);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            grid-column: 1 / -1;
+        }
+        
+        .page-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.7rem;
+        }
+        
+        .page-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 5px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            width: 100%;
+        }
+        
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            #spells-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .spell-card {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-hat-wizard"></i> D&D 5e Spell Grimoire</h1>
+    </div>
+    
+    <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="search-input" placeholder="Search spells...">
+    </div>
+    
+    <div class="filters">
+        <div class="filter-group">
+            <label for="level-filter"><i class="fas fa-sort-numeric-down"></i> Level:</label>
+            <select id="level-filter">
+                <option value="all">All</option>
+                <option value="0">Cantrips</option>
+                <option value="1">1st</option>
+                <option value="2">2nd</option>
+                <option value="3">3rd</option>
+                <option value="4">4th</option>
+                <option value="5">5th</option>
+                <option value="6">6th</option>
+                <option value="7">7th</option>
+                <option value="8">8th</option>
+                <option value="9">9th</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="school-filter"><i class="fas fa-graduation-cap"></i> School:</label>
+            <select id="school-filter">
+                <option value="all">All</option>
+                <option value="Abjuration">Abjuration</option>
+                <option value="Conjuration">Conjuration</option>
+                <option value="Divination">Divination</option>
+                <option value="Enchantment">Enchantment</option>
+                <option value="Evocation">Evocation</option>
+                <option value="Illusion">Illusion</option>
+                <option value="Necromancy">Necromancy</option>
+                <option value="Transmutation">Transmutation</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="class-filter"><i class="fas fa-user"></i> Class:</label>
+            <select id="class-filter">
+                <option value="all">All</option>
+                <option value="Bard">Bard</option>
+                <option value="Cleric">Cleric</option>
+                <option value="Druid">Druid</option>
+                <option value="Paladin">Paladin</option>
+                <option value="Ranger">Ranger</option>
+                <option value="Sorcerer">Sorcerer</option>
+                <option value="Warlock">Warlock</option>
+                <option value="Wizard">Wizard</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="spells-container">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading spells...
+        </div>
+    </div>
+
+     <div class="footer">
+        Created by <a href="https://github.com/codedgabriel" target="_blank" rel="noopener noreferrer">codedgabriel</a>
+    </div>
+    
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const spellsContainer = document.getElementById('spells-container');
+            const searchInput = document.getElementById('search-input');
+            const levelFilter = document.getElementById('level-filter');
+            const schoolFilter = document.getElementById('school-filter');
+            const classFilter = document.getElementById('class-filter');
+            
+            let allSpells = [];
+            
+            const schoolIcons = {
+                'Abjuration': 'fa-shield-alt',
+                'Conjuration': 'fa-hand-sparkles',
+                'Divination': 'fa-eye',
+                'Enchantment': 'fa-magic',
+                'Evocation': 'fa-fire',
+                'Illusion': 'fa-mask',
+                'Necromancy': 'fa-skull',
+                'Transmutation': 'fa-exchange-alt'
+            };
+            
+            async function fetchAllSpells() {
+                try {
+                    // Carrega os dados locais em vez de fazer chamadas à API
+                    const response = await fetch('dnd_spells_data/spells.json');
+                    allSpells = await response.json();
+                    
+                    if (!Array.isArray(allSpells)) throw new Error('Invalid data format');
+                    
+                    // Ordena as magias por nível e depois por nome
+                    allSpells.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+                    
+                    displaySpells(allSpells);
+                    setupFilters();
+                } catch (error) {
+                    console.error('Error:', error);
+                    spellsContainer.innerHTML = `
+                        <div class="error">
+                            Error loading spells. <button onclick="window.location.reload()">Retry</button>
+                        </div>
+                    `;
+                }
+            }
+            
+            function setupFilters() {
+                [levelFilter, schoolFilter, classFilter, searchInput].forEach(
+                    el => el.addEventListener('change', filterSpells)
+                );
+                searchInput.addEventListener('input', filterSpells);
+            }
+            
+            function filterSpells() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const level = levelFilter.value;
+                const school = schoolFilter.value;
+                const cls = classFilter.value;
+                
+                const filtered = allSpells.filter(spell => {
+                    const matchesSearch = spell.name.toLowerCase().includes(searchTerm) || 
+                                         spell.desc.join(' ').toLowerCase().includes(searchTerm);
+                    const matchesLevel = level === 'all' || spell.level.toString() === level;
+                    const matchesSchool = school === 'all' || spell.school.name === school;
+                    const matchesClass = cls === 'all' || 
+                                        spell.classes.some(c => c.name === cls) ||
+                                        (spell.subclasses && spell.subclasses.some(s => s.name === cls));
+                    
+                    return matchesSearch && matchesLevel && matchesSchool && matchesClass;
+                });
+                
+                displaySpells(filtered);
+            }
+            
+            function createPagedDescription(description) {
+                const maxCharsPerPage = 600;
+                const paragraphs = description;
+                let pages = [];
+                let currentPage = [];
+                let currentLength = 0;
+                
+                paragraphs.forEach(para => {
+                    if (currentLength + para.length > maxCharsPerPage && currentPage.length > 0) {
+                        pages.push(currentPage.join(' '));
+                        currentPage = [];
+                        currentLength = 0;
+                    }
+                    currentPage.push(para);
+                    currentLength += para.length;
+                });
+                
+                if (currentPage.length > 0) {
+                    pages.push(currentPage.join(' '));
+                }
+                
+                return pages;
+            }
+            
+            function displaySpells(spells) {
+                if (spells.length === 0) {
+                    spellsContainer.innerHTML = `
+                        <div class="error">
+                            No spells found. <button onclick="resetFilters()">Clear filters</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                spellsContainer.innerHTML = '';
+                
+                spells.forEach(spell => {
+                    const spellId = spell.index;
+                    const levelText = spell.level === 0 ? "Cantrip" : 
+                                    `${spell.level}${['st','nd','rd'][spell.level-1]||'th'} level`;
+                    
+                    const components = [];
+                    if (spell.components.includes('V')) components.push('Verbal');
+                    if (spell.components.includes('S')) components.push('Somatic');
+                    if (spell.components.includes('M')) {
+                        components.push(spell.material ? 
+                            `<span title="${spell.material}">Material</span>` : 'Material');
+                    }
+                    
+                    const duration = spell.concentration ? 
+                        `Concentration, up to ${spell.duration}` : spell.duration;
+                    
+                    const descriptionPages = createPagedDescription(spell.desc);
+                    const higherLevelPages = spell.higher_level ? createPagedDescription(spell.higher_level) : [];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'spell-card';
+                    
+                    card.innerHTML = `
+                        <div class="card-front">
+                            <span class="spell-tag">${levelText}</span>
+                            <h2 class="spell-name">${spell.name}</h2>
+                            <p class="spell-level-school">
+                                <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
+                                ${spell.school.name}
+                            </p>
+                            <div class="spell-details">
+                                <div class="spell-detail">
+                                    <span class="detail-label">Casting Time</span>
+                                    <span class="detail-value">${spell.casting_time}</span>
+                                </div>
+                                <div class="spell-detail">
+                                    <span class="detail-label">Range</span>
+                                    <span class="detail-value">${spell.range}</span>
+                                </div>
+                                <div class="spell-detail">
+                                    <span class="detail-label">Components</span>
+                                    <span class="detail-value">${components.join(', ')}</span>
+                                </div>
+                                <div class="spell-detail">
+                                    <span class="detail-label">Duration</span>
+                                    <span class="detail-value">${duration}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h2 class="spell-name">${spell.name}</h2>
+                            <p class="spell-level-school">
+                                <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
+                                ${spell.school.name} • ${levelText}
+                            </p>
+                            <div class="spell-description-container">
+                                <div class="spell-description" data-page="0">
+                                    ${descriptionPages.length > 0 ? `<p>${descriptionPages[0]}</p>` : ''}
+                                    ${higherLevelPages.length > 0 && descriptionPages.length <= 1 ? `
+                                        <div class="higher-level">
+                                            <div class="higher-level-title">
+                                                <i class="fas fa-level-up-alt"></i>
+                                                <span>At Higher Levels</span>
+                                            </div>
+                                            <p>${higherLevelPages[0]}</p>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                ${descriptionPages.length > 1 || higherLevelPages.length > 1 ? `
+                                <div class="page-controls">
+                                    <button class="page-btn prev-btn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+                                    <span>Page 1 of ${Math.max(descriptionPages.length, higherLevelPages.length)}</span>
+                                    <button class="page-btn next-btn">Next <i class="fas fa-chevron-right"></i></button>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="spell-details">
+                                <div class="spell-detail">
+                                    <span class="detail-label">Classes</span>
+                                    <span class="detail-value">${
+                                        [...spell.classes.map(c => c.name),
+                                         ...(spell.subclasses?.map(s => s.name) || [])].join(', ')
+                                    }</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Adiciona evento de clique para virar o card
+                    card.addEventListener('click', function(e) {
+                        if (!e.target.classList.contains('page-btn') &&
+                            !e.target.parentElement.classList.contains('page-btn')) {
+                            this.classList.toggle('flipped');
+                        }
+                    });
+                    
+                    // Configura paginação se necessário
+                    if (descriptionPages.length > 1 || higherLevelPages.length > 1) {
+                        const backContent = card.querySelector('.card-back');
+                        const prevBtn = backContent.querySelector('.prev-btn');
+                        const nextBtn = backContent.querySelector('.next-btn');
+                        const pageIndicator = backContent.querySelector('.page-controls span');
+                        let currentPage = 0;
+                        const totalPages = Math.max(descriptionPages.length, higherLevelPages.length);
+                        
+                        const updatePage = (newPage) => {
+                            currentPage = newPage;
+                            const descContent = descriptionPages[currentPage] || '';
+                            const higherContent = higherLevelPages[currentPage] || '';
+                            
+                            backContent.querySelector('.spell-description').innerHTML = `
+                                ${descContent ? `<p>${descContent}</p>` : ''}
+                                ${higherContent ? `
+                                    <div class="higher-level">
+                                        <div class="higher-level-title">
+                                            <i class="fas fa-level-up-alt"></i>
+                                            <span>At Higher Levels</span>
+                                        </div>
+                                        <p>${higherContent}</p>
+                                    </div>
+                                ` : ''}
+                            `;
+                            
+                            pageIndicator.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+                            prevBtn.disabled = currentPage === 0;
+                            nextBtn.disabled = currentPage === totalPages - 1;
+                        };
+                        
+                        prevBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (currentPage > 0) updatePage(currentPage - 1);
+                        });
+                        
+                        nextBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (currentPage < totalPages - 1) updatePage(currentPage + 1);
+                        });
+                    }
+                    
+                    // Ajusta o tamanho da fonte se necessário
+                    const adjustFontSize = () => {
+                        const backContent = card.querySelector('.card-back');
+                        const description = card.querySelector('.spell-description');
+                        
+                        // Reset para o tamanho original
+                        description.style.fontSize = '';
+                        
+                        // Verifica se o conteúdo está transbordando
+                        if (backContent.scrollHeight > backContent.clientHeight) {
+                            // Reduz gradativamente até caber
+                            let fontSize = 0.78;
+                            while (backContent.scrollHeight > backContent.clientHeight && fontSize > 0.6) {
+                                fontSize -= 0.02;
+                                description.style.fontSize = `${fontSize}rem`;
+                            }
+                        }
+                    };
+                    
+                    // Ajusta após o carregamento
+                    setTimeout(adjustFontSize, 50);
+                    
+                    spellsContainer.appendChild(card);
+                });
+            }
+            
+            window.resetFilters = function() {
+                searchInput.value = '';
+                levelFilter.value = 'all';
+                schoolFilter.value = 'all';
+                classFilter.value = 'all';
+                filterSpells();
+            };
+            
+            fetchAllSpells();
+        });
+    </script>
+</body>
+</html>
