@@ -41,7 +41,7 @@ Este é um projeto simples que desenvolvi enquanto estudo **banco de dados** e *
 
 ```bash
 # 1. Baixe ou clone este repositório
-git clone https://github.com/seu-usuario/dnd-grimoire.git
+git clone https://github.com/codedgabriel/dnd-grimoire.git
 
 # 2. Navegue até a pasta
 cd dnd-grimoire
