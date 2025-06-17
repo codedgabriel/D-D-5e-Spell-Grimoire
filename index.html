@@ -19,6 +19,15 @@
             --border-radius: 8px;
             --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
+            --bard-color: #a569bd;
+            --cleric-color: #3498db;
+            --druid-color: #27ae60;
+            --paladin-color: #e74c3c;
+            --ranger-color: #f39c12;
+            --sorcerer-color: #9b59b6;
+            --warlock-color: #8e44ad;
+            --wizard-color: #16a085;
+            --default-class-color: var(--primary-color);
         }
         
         * {
@@ -225,12 +234,12 @@
             border-radius: var(--border-radius);
         }
         
-.card-front {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: var(--light-text);
-    justify-content: space-between;
-    padding-top: 8px; /* Reduzi o padding superior */
-}
+        .card-front {
+            background: linear-gradient(135deg, var(--class-color, var(--primary-color)), var(--secondary-color));
+            color: var(--light-text);
+            justify-content: space-between;
+            padding-top: 8px;
+        }
         
         .card-back {
             background-color: var(--card-bg);
@@ -610,6 +619,8 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            
             // Elementos do DOM
             const spellsContainer = document.getElementById('spells-container');
             const searchInput = document.getElementById('search-input');
