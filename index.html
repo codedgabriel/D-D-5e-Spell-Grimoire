@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>D&D 5e Spell Grimoire</title>
+    <link rel="shortcut icon" href="icon.png" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Cinzel:wght@400;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -17,7 +18,11 @@
             --card-bg: #fff9ee;
             --border-radius: 8px;
             --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            --transition: all 0.6s ease;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
         }
         
         body {
@@ -29,6 +34,7 @@
             align-items: center;
             color: var(--dark-text);
             background-image: url('https://www.transparenttextures.com/patterns/parchment.png');
+            min-height: 100vh;
         }
         
         .header {
@@ -42,6 +48,10 @@
             color: var(--primary-color);
             font-size: 1.8rem;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .search-container {
@@ -59,6 +69,12 @@
             font-size: 0.9rem;
             background-color: var(--card-bg);
             box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        #search-input:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
         }
         
         .search-icon {
@@ -70,12 +86,34 @@
             font-size: 0.9rem;
         }
         
+        .clear-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            padding: 5px;
+        }
+        
+        .search-container:hover .clear-btn, 
+        #search-input:not(:placeholder-shown) + .clear-btn {
+            opacity: 1;
+        }
+        
         .filters {
             display: flex;
             gap: 8px;
             margin-bottom: 15px;
             flex-wrap: wrap;
             justify-content: center;
+            width: 100%;
+            max-width: 800px;
         }
         
         .filter-group {
@@ -86,20 +124,63 @@
             padding: 5px 10px;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+            flex-grow: 1;
         }
         
         .filter-group label {
             font-weight: 500;
             color: var(--primary-color);
             font-size: 0.8rem;
+            white-space: nowrap;
         }
         
         .filter-group select {
-            padding: 3px 6px;
+            padding: 5px 8px;
             border-radius: 4px;
             border: 1px solid var(--accent-color);
             background-color: var(--card-bg);
             font-size: 0.8rem;
+            min-width: 80px;
+            cursor: pointer;
+        }
+        
+        .filter-reset {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        
+        .filter-reset:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .favorites-filter {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--accent-color);
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .favorites-filter.active {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border-color: var(--primary-color);
         }
         
         #spells-container {
@@ -123,8 +204,13 @@
             cursor: pointer;
         }
         
+        .spell-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
         .spell-card.flipped {
-            transform: rotateY(180deg);
+            transform: rotateY(180deg) translateY(-5px);
         }
         
         .card-front, .card-back {
@@ -139,11 +225,12 @@
             border-radius: var(--border-radius);
         }
         
-        .card-front {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: var(--light-text);
-            justify-content: space-between;
-        }
+.card-front {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--light-text);
+    justify-content: space-between;
+    padding-top: 8px; /* Reduzi o padding superior */
+}
         
         .card-back {
             background-color: var(--card-bg);
@@ -161,9 +248,9 @@
         }
         
         .card-front .spell-name {
-            font-size: 1.25rem;
-            margin-bottom: 5px;
-        }
+    margin: auto 0; /* Centraliza verticalmente */
+    padding: 10px 0; /* Espaçamento extra para o nome */
+}
         
         .card-back .spell-name {
             font-size: 1.1rem;
@@ -176,10 +263,11 @@
             line-height: 1.2;
         }
         
-        .card-front .spell-level-school {
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-        }
+       .card-front .spell-level-school {
+    order: -1; /* Move para cima */
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+}
         
         .card-back .spell-level-school {
             font-size: 0.8rem;
@@ -264,17 +352,67 @@
             font-weight: 700;
         }
         
+        .favorite-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: none;
+            border: none;
+            color: var(--light-text);
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 2;
+            transition: var(--transition);
+            padding: 5px;
+        }
+        
+        .favorite-btn.favorited {
+            color: #ff6b6b;
+        }
+        
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+        
         .loading {
             text-align: center;
             padding: 20px;
             grid-column: 1 / -1;
         }
         
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .no-results i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+        }
+        
+        .no-results button {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
         .page-controls {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-top: 5px;
             font-size: 0.7rem;
+            padding: 5px 0;
         }
         
         .page-btn {
@@ -284,6 +422,14 @@
             cursor: pointer;
             font-weight: bold;
             padding: 2px 5px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .footer {
@@ -305,17 +451,70 @@
             text-decoration: underline;
         }
         
+        /* Responsividade para celulares */
         @media (max-width: 768px) {
-            #spells-container {
-                grid-template-columns: 1fr;
-            }
-            
             .header h1 {
                 font-size: 1.5rem;
             }
             
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                justify-content: space-between;
+            }
+            
+            .filter-group select {
+                flex-grow: 1;
+                max-width: 100%;
+            }
+            
+            #spells-container {
+                grid-template-columns: 1fr;
+            }
+            
             .spell-card {
-                height: 400px;
+                height: 380px;
+            }
+            
+            .card-front .spell-name {
+                font-size: 1.1rem;
+            }
+            
+            .card-back .spell-name {
+                font-size: 1rem;
+            }
+            
+            .spell-level-school {
+                font-size: 0.75rem;
+            }
+            
+            .detail-value {
+                font-size: 0.75rem;
+            }
+            
+            .spell-description {
+                font-size: 0.72rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .spell-card {
+                height: 360px;
+            }
+            
+            .card-front, .card-back {
+                padding: 10px;
             }
         }
     </style>
@@ -327,7 +526,10 @@
     
     <div class="search-container">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" id="search-input" placeholder="Search spells...">
+        <input type="text" id="search-input" placeholder="Search spells by name, description or effect...">
+        <button id="clear-search" class="clear-btn" title="Clear search">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
     
     <div class="filters">
@@ -377,6 +579,23 @@
                 <option value="Wizard">Wizard</option>
             </select>
         </div>
+        
+        <div class="filter-group">
+            <label for="sort-by"><i class="fas fa-sort"></i> Sort by:</label>
+            <select id="sort-by">
+                <option value="level">Level</option>
+                <option value="name">Name</option>
+                <option value="school">School</option>
+            </select>
+        </div>
+        
+        <button id="filter-favorites" class="favorites-filter" title="Show favorites only">
+            <i class="far fa-heart"></i> Favorites
+        </button>
+        
+        <button id="reset-filters" class="filter-reset" title="Reset all filters">
+            <i class="fas fa-sync-alt"></i> Reset
+        </button>
     </div>
     
     <div id="spells-container">
@@ -385,18 +604,22 @@
         </div>
     </div>
 
-     <div class="footer">
+    <div class="footer">
         Created by <a href="https://github.com/codedgabriel" target="_blank" rel="noopener noreferrer">codedgabriel</a>
     </div>
     
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
             const spellsContainer = document.getElementById('spells-container');
             const searchInput = document.getElementById('search-input');
             const levelFilter = document.getElementById('level-filter');
             const schoolFilter = document.getElementById('school-filter');
             const classFilter = document.getElementById('class-filter');
+            const clearSearchBtn = document.getElementById('clear-search');
+            const resetFiltersBtn = document.getElementById('reset-filters');
+            const favoritesFilterBtn = document.getElementById('filter-favorites');
+            const sortBySelect = document.getElementById('sort-by');
             
             let allSpells = [];
             
@@ -411,50 +634,97 @@
                 'Transmutation': 'fa-exchange-alt'
             };
             
+            // Função para obter favoritos do localStorage
+            function getFavorites() {
+                try {
+                    const favorites = JSON.parse(localStorage.getItem('favoriteSpells'));
+                    return Array.isArray(favorites) ? favorites : [];
+                } catch (e) {
+                    console.error('Error reading favorites from localStorage:', e);
+                    return [];
+                }
+            }
+            
+            // Carrega os dados das magias
             async function fetchAllSpells() {
                 try {
-                    // Carrega os dados locais em vez de fazer chamadas à API
                     const response = await fetch('dnd_spells_data/spells.json');
                     allSpells = await response.json();
                     
                     if (!Array.isArray(allSpells)) throw new Error('Invalid data format');
                     
-                    // Ordena as magias por nível e depois por nome
-                    allSpells.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-                    
+                    sortSpells('level');
                     displaySpells(allSpells);
-                    setupFilters();
+                    setupEventListeners();
                 } catch (error) {
                     console.error('Error:', error);
-                    spellsContainer.innerHTML = `
-                        <div class="error">
-                            Error loading spells. <button onclick="window.location.reload()">Retry</button>
-                        </div>
-                    `;
+                    showError();
                 }
             }
             
-            function setupFilters() {
-                [levelFilter, schoolFilter, classFilter, searchInput].forEach(
+            // Configura os event listeners
+            function setupEventListeners() {
+                // Filtros
+                [levelFilter, schoolFilter, classFilter, sortBySelect].forEach(
                     el => el.addEventListener('change', filterSpells)
                 );
+                
+                // Pesquisa
                 searchInput.addEventListener('input', filterSpells);
+                clearSearchBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    filterSpells();
+                    searchInput.focus();
+                });
+                
+                // Botões
+                resetFiltersBtn.addEventListener('click', resetFilters);
+                favoritesFilterBtn.addEventListener('click', toggleFavoritesFilter);
             }
             
+            // Ordena as magias
+            function sortSpells(criteria) {
+                allSpells.sort((a, b) => {
+                    switch(criteria) {
+                        case 'name':
+                            return a.name.localeCompare(b.name);
+                        case 'school':
+                            return a.school.name.localeCompare(b.school.name) || a.level - b.level;
+                        case 'level':
+                        default:
+                            return a.level - b.level || a.name.localeCompare(b.name);
+                    }
+                });
+            }
+            
+            // Filtra as magias
             function filterSpells() {
                 const searchTerm = searchInput.value.toLowerCase();
                 const level = levelFilter.value;
                 const school = schoolFilter.value;
                 const cls = classFilter.value;
+                const sortBy = sortBySelect.value;
+                const showFavorites = favoritesFilterBtn.classList.contains('active');
+                
+                // Ordena antes de filtrar
+                sortSpells(sortBy);
                 
                 const filtered = allSpells.filter(spell => {
-                    const matchesSearch = spell.name.toLowerCase().includes(searchTerm) || 
-                                         spell.desc.join(' ').toLowerCase().includes(searchTerm);
+                    // Verifica favoritos primeiro (se aplicável)
+                    if (showFavorites) {
+                        const favorites = getFavorites();
+                        if (!favorites.includes(spell.index)) return false;
+                    }
+                    
+                    // Resto das verificações
+                    const matchesSearch = searchTerm === '' || 
+                                       spell.name.toLowerCase().includes(searchTerm) || 
+                                       spell.desc.join(' ').toLowerCase().includes(searchTerm);
                     const matchesLevel = level === 'all' || spell.level.toString() === level;
                     const matchesSchool = school === 'all' || spell.school.name === school;
                     const matchesClass = cls === 'all' || 
-                                        spell.classes.some(c => c.name === cls) ||
-                                        (spell.subclasses && spell.subclasses.some(s => s.name === cls));
+                                      spell.classes.some(c => c.name === cls) ||
+                                      (spell.subclasses && spell.subclasses.some(s => s.name === cls));
                     
                     return matchesSearch && matchesLevel && matchesSchool && matchesClass;
                 });
@@ -462,9 +732,253 @@
                 displaySpells(filtered);
             }
             
+            // Alterna o filtro de favoritos
+            function toggleFavoritesFilter() {
+                this.classList.toggle('active');
+                const icon = this.querySelector('i');
+                if (this.classList.contains('active')) {
+                    icon.classList.replace('far', 'fas');
+                } else {
+                    icon.classList.replace('fas', 'far');
+                }
+                filterSpells();
+            }
+            
+            // Reseta todos os filtros
+            function resetFilters() {
+                searchInput.value = '';
+                levelFilter.value = 'all';
+                schoolFilter.value = 'all';
+                classFilter.value = 'all';
+                sortBySelect.value = 'level';
+                
+                if (favoritesFilterBtn.classList.contains('active')) {
+                    favoritesFilterBtn.classList.remove('active');
+                    favoritesFilterBtn.querySelector('i').classList.replace('fas', 'far');
+                }
+                
+                filterSpells();
+            }
+            
+            // Mostra mensagem de erro
+            function showError() {
+                spellsContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error loading spells.</p>
+                        <button onclick="window.location.reload()">Try Again</button>
+                    </div>
+                `;
+            }
+            
+            // Exibe as magias
+            function displaySpells(spells) {
+                if (spells.length === 0) {
+                    spellsContainer.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No spells found matching your criteria.</p>
+                            <button onclick="resetFilters()">Clear all filters</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                spellsContainer.innerHTML = '';
+                
+                spells.forEach(spell => {
+                    const spellCard = createSpellCard(spell);
+                    spellsContainer.appendChild(spellCard);
+                });
+            }
+            
+            // Cria um card de magia
+            function createSpellCard(spell) {
+                const spellId = spell.index;
+                const levelText = spell.level === 0 ? "Cantrip" : 
+                                `${spell.level}${['st','nd','rd'][spell.level-1]||'th'} level`;
+                
+                const components = [];
+                if (spell.components.includes('V')) components.push('Verbal');
+                if (spell.components.includes('S')) components.push('Somatic');
+                if (spell.components.includes('M')) {
+                    components.push(spell.material ? 
+                        `<span title="${spell.material}">Material</span>` : 'Material');
+                }
+                
+                const duration = spell.concentration ? 
+                    `Concentration, up to ${spell.duration}` : spell.duration;
+                
+                const descriptionPages = createPagedDescription(spell.desc);
+                const higherLevelPages = spell.higher_level ? createPagedDescription(spell.higher_level) : [];
+                
+                const favorites = getFavorites();
+                const isFavorite = favorites.includes(spellId);
+                
+                const card = document.createElement('div');
+                card.className = 'spell-card';
+                card.innerHTML = `
+                    <div class="card-front">
+                        <span class="spell-tag">${levelText}</span>
+                        <button class="favorite-btn ${isFavorite ? 'favorited' : ''}" 
+                                data-spell-id="${spellId}"
+                                aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                        <h2 class="spell-name">${spell.name}</h2>
+                        <p class="spell-level-school">
+                            <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
+                            ${spell.school.name}
+                        </p>
+                        <div class="spell-details">
+                            <div class="spell-detail">
+                                <span class="detail-label">Casting Time</span>
+                                <span class="detail-value">${spell.casting_time}</span>
+                            </div>
+                            <div class="spell-detail">
+                                <span class="detail-label">Range</span>
+                                <span class="detail-value">${spell.range}</span>
+                            </div>
+                            <div class="spell-detail">
+                                <span class="detail-label">Components</span>
+                                <span class="detail-value">${components.join(', ')}</span>
+                            </div>
+                            <div class="spell-detail">
+                                <span class="detail-label">Duration</span>
+                                <span class="detail-value">${duration}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h2 class="spell-name">${spell.name}</h2>
+                        <p class="spell-level-school">
+                            <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
+                            ${spell.school.name} • ${levelText}
+                        </p>
+                        <div class="spell-description-container">
+                            <div class="spell-description" data-page="0">
+                                ${descriptionPages.length > 0 ? `<p>${descriptionPages[0]}</p>` : ''}
+                                ${higherLevelPages.length > 0 && descriptionPages.length <= 1 ? `
+                                    <div class="higher-level">
+                                        <div class="higher-level-title">
+                                            <i class="fas fa-level-up-alt"></i>
+                                            <span>At Higher Levels</span>
+                                        </div>
+                                        <p>${higherLevelPages[0]}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ${descriptionPages.length > 1 || higherLevelPages.length > 1 ? `
+                            <div class="page-controls">
+                                <button class="page-btn prev-btn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+                                <span>Page 1 of ${Math.max(descriptionPages.length, higherLevelPages.length)}</span>
+                                <button class="page-btn next-btn">Next <i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="spell-details">
+                            <div class="spell-detail">
+                                <span class="detail-label">Classes</span>
+                                <span class="detail-value">${
+                                    [...spell.classes.map(c => c.name),
+                                     ...(spell.subclasses?.map(s => s.name) || [])].join(', ')
+                                }</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Adiciona evento de clique para virar o card
+                card.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('page-btn') &&
+                        !e.target.classList.contains('favorite-btn') &&
+                        !e.target.parentElement.classList.contains('page-btn') &&
+                        !e.target.parentElement.classList.contains('favorite-btn')) {
+                        this.classList.toggle('flipped');
+                    }
+                });
+                
+                // Configura o botão de favoritos
+                const favoriteBtn = card.querySelector('.favorite-btn');
+                favoriteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleFavorite(this.dataset.spellId, this);
+                });
+                
+                // Configura paginação se necessário
+                if (descriptionPages.length > 1 || higherLevelPages.length > 1) {
+                    const backContent = card.querySelector('.card-back');
+                    const prevBtn = backContent.querySelector('.prev-btn');
+                    const nextBtn = backContent.querySelector('.next-btn');
+                    const pageIndicator = backContent.querySelector('.page-controls span');
+                    let currentPage = 0;
+                    const totalPages = Math.max(descriptionPages.length, higherLevelPages.length);
+                    
+                    const updatePage = (newPage) => {
+                        currentPage = newPage;
+                        const descContent = descriptionPages[currentPage] || '';
+                        const higherContent = higherLevelPages[currentPage] || '';
+                        
+                        backContent.querySelector('.spell-description').innerHTML = `
+                            ${descContent ? `<p>${descContent}</p>` : ''}
+                            ${higherContent ? `
+                                <div class="higher-level">
+                                    <div class="higher-level-title">
+                                        <i class="fas fa-level-up-alt"></i>
+                                        <span>At Higher Levels</span>
+                                    </div>
+                                    <p>${higherContent}</p>
+                                </div>
+                            ` : ''}
+                        `;
+                        
+                        pageIndicator.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+                        prevBtn.disabled = currentPage === 0;
+                        nextBtn.disabled = currentPage === totalPages - 1;
+                    };
+                    
+                    prevBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (currentPage > 0) updatePage(currentPage - 1);
+                    });
+                    
+                    nextBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (currentPage < totalPages - 1) updatePage(currentPage + 1);
+                    });
+                }
+                
+                // Ajusta o tamanho da fonte se necessário
+                const adjustFontSize = () => {
+                    const backContent = card.querySelector('.card-back');
+                    const description = card.querySelector('.spell-description');
+                    
+                    // Reset para o tamanho original
+                    description.style.fontSize = '';
+                    
+                    // Verifica se o conteúdo está transbordando
+                    if (backContent.scrollHeight > backContent.clientHeight) {
+                        // Reduz gradativamente até caber
+                        let fontSize = 0.78;
+                        while (backContent.scrollHeight > backContent.clientHeight && fontSize > 0.6) {
+                            fontSize -= 0.02;
+                            description.style.fontSize = `${fontSize}rem`;
+                        }
+                    }
+                };
+                
+                // Ajusta após o carregamento
+                setTimeout(adjustFontSize, 50);
+                
+                return card;
+            }
+            
+            // Cria páginas para descrições longas
             function createPagedDescription(description) {
+                if (!description) return [];
+                
                 const maxCharsPerPage = 600;
-                const paragraphs = description;
+                const paragraphs = Array.isArray(description) ? description : [description];
                 let pages = [];
                 let currentPage = [];
                 let currentLength = 0;
@@ -486,192 +1000,35 @@
                 return pages;
             }
             
-            function displaySpells(spells) {
-                if (spells.length === 0) {
-                    spellsContainer.innerHTML = `
-                        <div class="error">
-                            No spells found. <button onclick="resetFilters()">Clear filters</button>
-                        </div>
-                    `;
-                    return;
+            // Alterna o status de favorito de uma magia
+            function toggleFavorite(spellId, buttonElement) {
+                const favorites = getFavorites();
+                const index = favorites.indexOf(spellId);
+                const icon = buttonElement.querySelector('i');
+                
+                if (index === -1) {
+                    favorites.push(spellId);
+                    buttonElement.classList.add('favorited');
+                    icon.classList.replace('far', 'fas');
+                } else {
+                    favorites.splice(index, 1);
+                    buttonElement.classList.remove('favorited');
+                    icon.classList.replace('fas', 'far');
                 }
                 
-                spellsContainer.innerHTML = '';
+                localStorage.setItem('favoriteSpells', JSON.stringify(favorites));
                 
-                spells.forEach(spell => {
-                    const spellId = spell.index;
-                    const levelText = spell.level === 0 ? "Cantrip" : 
-                                    `${spell.level}${['st','nd','rd'][spell.level-1]||'th'} level`;
-                    
-                    const components = [];
-                    if (spell.components.includes('V')) components.push('Verbal');
-                    if (spell.components.includes('S')) components.push('Somatic');
-                    if (spell.components.includes('M')) {
-                        components.push(spell.material ? 
-                            `<span title="${spell.material}">Material</span>` : 'Material');
-                    }
-                    
-                    const duration = spell.concentration ? 
-                        `Concentration, up to ${spell.duration}` : spell.duration;
-                    
-                    const descriptionPages = createPagedDescription(spell.desc);
-                    const higherLevelPages = spell.higher_level ? createPagedDescription(spell.higher_level) : [];
-                    
-                    const card = document.createElement('div');
-                    card.className = 'spell-card';
-                    
-                    card.innerHTML = `
-                        <div class="card-front">
-                            <span class="spell-tag">${levelText}</span>
-                            <h2 class="spell-name">${spell.name}</h2>
-                            <p class="spell-level-school">
-                                <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
-                                ${spell.school.name}
-                            </p>
-                            <div class="spell-details">
-                                <div class="spell-detail">
-                                    <span class="detail-label">Casting Time</span>
-                                    <span class="detail-value">${spell.casting_time}</span>
-                                </div>
-                                <div class="spell-detail">
-                                    <span class="detail-label">Range</span>
-                                    <span class="detail-value">${spell.range}</span>
-                                </div>
-                                <div class="spell-detail">
-                                    <span class="detail-label">Components</span>
-                                    <span class="detail-value">${components.join(', ')}</span>
-                                </div>
-                                <div class="spell-detail">
-                                    <span class="detail-label">Duration</span>
-                                    <span class="detail-value">${duration}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-back">
-                            <h2 class="spell-name">${spell.name}</h2>
-                            <p class="spell-level-school">
-                                <i class="fas ${schoolIcons[spell.school.name] || 'fa-scroll'}"></i>
-                                ${spell.school.name} • ${levelText}
-                            </p>
-                            <div class="spell-description-container">
-                                <div class="spell-description" data-page="0">
-                                    ${descriptionPages.length > 0 ? `<p>${descriptionPages[0]}</p>` : ''}
-                                    ${higherLevelPages.length > 0 && descriptionPages.length <= 1 ? `
-                                        <div class="higher-level">
-                                            <div class="higher-level-title">
-                                                <i class="fas fa-level-up-alt"></i>
-                                                <span>At Higher Levels</span>
-                                            </div>
-                                            <p>${higherLevelPages[0]}</p>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                                ${descriptionPages.length > 1 || higherLevelPages.length > 1 ? `
-                                <div class="page-controls">
-                                    <button class="page-btn prev-btn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-                                    <span>Page 1 of ${Math.max(descriptionPages.length, higherLevelPages.length)}</span>
-                                    <button class="page-btn next-btn">Next <i class="fas fa-chevron-right"></i></button>
-                                </div>
-                                ` : ''}
-                            </div>
-                            <div class="spell-details">
-                                <div class="spell-detail">
-                                    <span class="detail-label">Classes</span>
-                                    <span class="detail-value">${
-                                        [...spell.classes.map(c => c.name),
-                                         ...(spell.subclasses?.map(s => s.name) || [])].join(', ')
-                                    }</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Adiciona evento de clique para virar o card
-                    card.addEventListener('click', function(e) {
-                        if (!e.target.classList.contains('page-btn') &&
-                            !e.target.parentElement.classList.contains('page-btn')) {
-                            this.classList.toggle('flipped');
-                        }
-                    });
-                    
-                    // Configura paginação se necessário
-                    if (descriptionPages.length > 1 || higherLevelPages.length > 1) {
-                        const backContent = card.querySelector('.card-back');
-                        const prevBtn = backContent.querySelector('.prev-btn');
-                        const nextBtn = backContent.querySelector('.next-btn');
-                        const pageIndicator = backContent.querySelector('.page-controls span');
-                        let currentPage = 0;
-                        const totalPages = Math.max(descriptionPages.length, higherLevelPages.length);
-                        
-                        const updatePage = (newPage) => {
-                            currentPage = newPage;
-                            const descContent = descriptionPages[currentPage] || '';
-                            const higherContent = higherLevelPages[currentPage] || '';
-                            
-                            backContent.querySelector('.spell-description').innerHTML = `
-                                ${descContent ? `<p>${descContent}</p>` : ''}
-                                ${higherContent ? `
-                                    <div class="higher-level">
-                                        <div class="higher-level-title">
-                                            <i class="fas fa-level-up-alt"></i>
-                                            <span>At Higher Levels</span>
-                                        </div>
-                                        <p>${higherContent}</p>
-                                    </div>
-                                ` : ''}
-                            `;
-                            
-                            pageIndicator.textContent = `Page ${currentPage + 1} of ${totalPages}`;
-                            prevBtn.disabled = currentPage === 0;
-                            nextBtn.disabled = currentPage === totalPages - 1;
-                        };
-                        
-                        prevBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (currentPage > 0) updatePage(currentPage - 1);
-                        });
-                        
-                        nextBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (currentPage < totalPages - 1) updatePage(currentPage + 1);
-                        });
-                    }
-                    
-                    // Ajusta o tamanho da fonte se necessário
-                    const adjustFontSize = () => {
-                        const backContent = card.querySelector('.card-back');
-                        const description = card.querySelector('.spell-description');
-                        
-                        // Reset para o tamanho original
-                        description.style.fontSize = '';
-                        
-                        // Verifica se o conteúdo está transbordando
-                        if (backContent.scrollHeight > backContent.clientHeight) {
-                            // Reduz gradativamente até caber
-                            let fontSize = 0.78;
-                            while (backContent.scrollHeight > backContent.clientHeight && fontSize > 0.6) {
-                                fontSize -= 0.02;
-                                description.style.fontSize = `${fontSize}rem`;
-                            }
-                        }
-                    };
-                    
-                    // Ajusta após o carregamento
-                    setTimeout(adjustFontSize, 50);
-                    
-                    spellsContainer.appendChild(card);
-                });
+                // Se o filtro de favoritos estiver ativo, refiltra
+                if (favoritesFilterBtn.classList.contains('active')) {
+                    filterSpells();
+                }
             }
             
-            window.resetFilters = function() {
-                searchInput.value = '';
-                levelFilter.value = 'all';
-                schoolFilter.value = 'all';
-                classFilter.value = 'all';
-                filterSpells();
-            };
-            
+            // Inicializa a aplicação
             fetchAllSpells();
+            
+            // Torna a função resetFilters acessível globalmente
+            window.resetFilters = resetFilters;
         });
     </script>
 </body>
